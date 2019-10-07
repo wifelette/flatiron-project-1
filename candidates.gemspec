@@ -20,7 +20,13 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
+  spec.add_runtime_dependency "awesome_print", "~> 1.8"
+  spec.add_runtime_dependency "httparty", "~> 0.17.1"
+  spec.add_runtime_dependency "thor", "~> 0.20.3"
+  spec.add_runtime_dependency "pastel", "~> 0.7.3"
+
   spec.add_development_dependency "bundler", "~> 2.0"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "webmock", "~> 2.1.0"
 end
