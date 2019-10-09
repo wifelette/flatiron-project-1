@@ -74,3 +74,9 @@ To look up the available options: https://github.com/piotrmurach/pastel
 ## Webmock
 
 Webmock is a gem I'm using to allow me to use stub data in my tests, instead of continuing to hammer the actual API every time. I added this after chatting with a classmate who was getting rate limited by her project website :p
+
+## TTYPrompt
+
+https://rubygems.org/gems/tty-prompt
+https://github.com/piotrmurach/tty-prompt
+

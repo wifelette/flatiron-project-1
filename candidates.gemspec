@@ -22,8 +22,10 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency "awesome_print", "~> 1.8"
   spec.add_runtime_dependency "httparty", "~> 0.17.1"
-  spec.add_runtime_dependency "thor", "~> 0.20.3"
   spec.add_runtime_dependency "pastel", "~> 0.7.3"
+  spec.add_runtime_dependency "progressbar", "~> 1.10.1"
+  spec.add_runtime_dependency "thor", "~> 0.20.3"
+  spec.add_runtime_dependency "tty-prompt", "~> 0.19.0"
 
   spec.add_development_dependency "bundler", "~> 2.0"
   spec.add_development_dependency "rake", "~> 10.0"

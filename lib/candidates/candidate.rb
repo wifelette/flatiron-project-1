@@ -21,6 +21,7 @@ module Candidates
       @created = user_data["created_at"]
       @repos = user_data["public_repos"]
       @followers = user_data["followers"]
+      
     end
 
     def org_count

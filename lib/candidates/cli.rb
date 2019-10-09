@@ -2,17 +2,18 @@ require "thor"
 require "httparty"
 require "pastel"
 require "awesome_print"
+require "tty-prompt"
+require "progressbar"
 
 module Candidates
   PASTEL = Pastel.new
   class Cli < Thor
     def help(*)
+      puts ""
       print_wrapped <<~INTRO
-        #{PASTEL.on_magenta('👋 Hello friend')}.
+        #{PASTEL.magenta.bold('Are you tired of needing to use your 👀 to evaluate your candidates past 🏃‍♀️ record on Github? Are you tired of needing to, ugh, type URLs into your browser?! Have no fear! The `candidates` gem is here! 😊.')}
 
-        Are you tired of needing to use your #{PASTEL.blue('eyes')} to evaluate your candidates past 🏃‍♀️ record on Github? Are you tired of needing to, ugh, type URLs into your browser?! Have no fear! The #{PASTEL.black.bold('candidates')} gem is here! 😊
-
-        Use #{PASTEL.black.bold('candidates help')} along the way to remind yourself of all the super cool things you can do.
+        #{PASTEL.magenta.bold('Use `candidates help` along the way to remind yourself of all the super cool things you can do..')} 
       INTRO
 
       puts
@@ -23,6 +24,7 @@ module Candidates
     desc "user USERNAME", "Gets info about a Github user"
     def user(username)
       candidate = Candidate.new(username)
+      puts ""
       say <<~WRAPPED
         #{PASTEL.on_magenta("Here's everything you need to know about #{username}:")}
 
@@ -65,10 +67,79 @@ module Candidates
       ap org_data
     end
 
-    desc "company USERNAME", "returns the company the candidate publicly associates with"
+    desc "company USERNAME", "Returns the company the candidate publicly associates with"
     def company(username)
       candidate = Candidate.new(username)
       puts candidate.company
+    end
+
+    no_commands do 
+      def prompts(username)
+        prompt = TTY::Prompt.new
+        choices = [
+          "Look up #{username}'s general information", 
+          "Tell me about the orgs #{username} belongs to", 
+          "Look up a different candidate",
+          "Remind me what the #{PASTEL.magenta.bold("`candidates`")} gem can do", 
+          "Exit the program"
+        ]
+        prompt.select("How can I help you learn about #{PASTEL.magenta.bold("#{username}")}?", choices)
+      end
+    end
+
+    desc "wizard", "Asks the user for input and helps them with subsequent questions"
+    def wizard
+      prompt = TTY::Prompt.new
+
+      puts ""
+      say <<~WRAPPED
+        #{PASTEL.magenta.bold("Hello friend! This tool is designed to help you look up information about the developer candidate you've been tasked with assessing. So first thing's first: what's the Github username of the candidate?")}
+      WRAPPED
+      puts ""
+      username = prompt.ask("")
+      new_candidate = Candidate.new(username)
+
+      loop do
+        puts ""
+        response = prompts(username)
+        
+        if response == "Look up #{username}'s general information"
+          puts ""
+          user(username)
+        elsif response == "Tell me about the orgs #{username} belongs to"
+          puts ""
+          puts "#{username} is a member of #{new_candidate.org_count} organizations."
+          puts ""
+          org_details = prompt.yes?("Do you want a list of all their details? This could take a while.")
+          puts ""
+          if org_details == true
+            puts "Happy to help. Fetching the data now..."
+            puts ""
+            progressbar = ProgressBar.create
+            # Right now this is just making a random progressbar that then disappear; gotta revisit later
+            4.times { progressbar.increment; sleep 1 }
+            # Loop in here to return an array of the names of all the user's orgs
+            orgs(username)
+            # Restart the loop again with the choices
+          else
+            puts "Wise choice. What's next?"
+            puts ""
+          end
+        elsif response == "Look up a different candidate"
+          username = prompt.ask("What's the Github username of this next candidate?")
+          new_candidate = Candidate.new(username)
+          choices
+          # need a way to restart the loop here. Probably need to extract some bit of this to another function so I can call it again. 
+          # Choices could perhaps be a method too, that's passed the new username for string interpolation
+        elsif response == "Remind me what the #{PASTEL.magenta.bold("`candidates`")} gem can do"
+          puts ""
+          help
+        elsif response == "Exit the program"
+          puts ""
+          puts "#{PASTEL.magenta.bold('Goodbye then!')}"
+          exit
+        end
+      end
     end
   end
 end
