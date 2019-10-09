@@ -2,7 +2,7 @@ require "httparty"
 
 module Candidates
   class Candidate
-    attr_accessor :username, :pretty_name, :location, :email, :company, :bio, :hireable, :created, :repos, :followers
+    attr_accessor :username, :real_name, :location, :email, :company, :bio, :hireable, :created, :repos, :followers
 
     def initialize(username)
       response = HTTParty.get("https://api.github.com/users/#{username}")
@@ -12,7 +12,7 @@ module Candidates
       user_data = response.parsed_response
 
       @username = user_data["login"]
-      @pretty_name = user_data["name"]
+      @real_name = user_data["name"]
       @location = user_data["location"]
       @email = user_data["email"]
       @company = user_data["company"]
@@ -21,11 +21,18 @@ module Candidates
       @created = user_data["created_at"]
       @repos = user_data["public_repos"]
       @followers = user_data["followers"]
-      
     end
 
     def org_count
       HTTParty.get("https://api.github.com/users/#{username}/orgs").parsed_response.length
+    end
+
+    def org_names(array_of_orgs)
+      incrementor = 1
+      HTTParty.get("https://api.github.com/users/#{username}/orgs").parsed_response.each do |org_hash|
+        puts "#{incrementor}. #{org_hash["login"]}"
+        incrementor += 1
+      end
     end
   end
 end
