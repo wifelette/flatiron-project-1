@@ -7,7 +7,12 @@ require "tty-markdown"
 require "progressbar"
 
 module Candidates
+  # Pastel is a tool for coloring text inside the terminal
   PASTEL = Pastel.new
+  # TTY adds numerous formatting options for data+copy in the terminal
+  PROMPT = TTY::Prompt.new
+  # This constant is used by the TTY (sub)gem tty-markdown, also for display stuff
+  # In this case I used it to overwrite default markdown styling to get some of my longer text blocks to look the way I wanted them to look.
   THEME = {
     em: [:magenta, :bold],
     header: [:cyan, :bold],
@@ -20,31 +25,49 @@ module Candidates
   }
   class Cli < Thor
     def help(*)
-      puts ""
+      puts
       help_file = File.expand_path('../../markdown/help.md', __dir__)
       parsed = TTY::Markdown.parse_file(help_file, theme: THEME)
       puts parsed
-      puts ""
+      puts
       super
     end
 
     desc "user USERNAME", "Gets info about a Github user"
     def user(username)
       candidate = Candidate.new(username)
-      puts ""
+      puts
       say <<~WRAPPED
         #{PASTEL.on_magenta("Here's everything you need to know about #{username}:")}
 
         #{PASTEL.magenta.bold('THEIR BASICS:')}
         
-        #{PASTEL.magenta.bold('Name:')} #{candidate.pretty_name}
+        #{PASTEL.magenta.bold('Name:')} #{candidate.real_name}
         #{PASTEL.magenta.bold('Company:')} #{candidate.company}
         #{PASTEL.magenta.bold('Location:')} #{candidate.location}
-        #{PASTEL.magenta.bold('Bio:')} #{candidate.bio}
-        #{PASTEL.magenta.bold('Email:')} #{candidate.email}
-        TODO: If not provided, write Not Public
-        #{PASTEL.magenta.bold('Hireable:')} #{candidate.hireable}
-        TODO: Yes/No (Yes in Green, No in Red)
+        #{PASTEL.magenta.bold('Bio:')} #{
+          if candidate.bio.nil?
+            'No public bio.'
+          else
+            "#{candidate.bio}"
+          end
+        }
+        #{PASTEL.magenta.bold('Email:')} #{
+          if candidate.email.nil?
+            "Their email isn't public."
+          else
+            "#{candidate.email}"
+          end
+        }
+        #{PASTEL.magenta.bold('Hireable:')} #{
+          if candidate.hireable == true
+            "#{PASTEL.green.bold('Yes')}"
+          elsif candidate.hireable == false
+            puts "#{PASTEL.red.bold('No')}"
+          else
+            'No public response.'
+          end
+        }
         
         #{PASTEL.magenta.bold('THEIR ACTIVITY:')}
         
@@ -63,15 +86,7 @@ module Candidates
         #{PASTEL.magenta.bold('Public Repos:')} #{PASTEL.underline("https://github.com/#{username}?tab=repositories")}
         #{PASTEL.magenta.bold('Starred Repos:')} #{PASTEL.underline("https://github.com/#{username}?tab=stars")}
         #{PASTEL.magenta.bold('Who They Follow:')} #{PASTEL.underline("https://github.com/#{username}?tab=following")}
-        
-        Type #{PASTEL.black.bold('candidates help')} to learn about how else this tool can help.
       WRAPPED
-    end
-
-    desc "orgs USERNAME", "Returns all the Orgs this user belongs to"
-    def orgs(username)
-      org_data = HTTParty.get("https://api.github.com/users/#{username}/orgs").parsed_response
-      ap org_data
     end
 
     desc "company USERNAME", "Returns the company the candidate publicly associates with"
@@ -80,69 +95,84 @@ module Candidates
       puts candidate.company
     end
 
+    # This makes it a private method that won't appear in the Thor help command
     no_commands do 
+      def orgs(username)
+        org_data = HTTParty.get("https://api.github.com/users/#{username}/orgs").parsed_response
+      end
+
+      def format_username(username)
+        "#{PASTEL.magenta.bold("#{username}")}"
+      end
+      
       def prompts(username)
-        prompt = TTY::Prompt.new
+        pretty_name = format_username(username)
         choices = [
-          "Look up #{username}'s general information", 
-          "Tell me about the orgs #{username} belongs to", 
-          "Look up a different candidate",
-          "Remind me what the #{PASTEL.magenta.bold("`candidates`")} gem can do", 
-          "Exit the program"
+          { value: :userinfo,    name: "Look up #{pretty_name}'s general information" },
+          { value: :orgs,      name: "Tell me about the orgs #{pretty_name} belongs to" },
+          { value: :newuser, name: "Look up a different candidate" },
+          { value: :help,      name: "Remind me what the #{PASTEL.magenta.bold('`candidates`')} gem can do" },
+          { value: :exit,      name: "Exit the program" }
         ]
-        prompt.select("How can I help you learn about #{PASTEL.magenta.bold("#{username}")}?", choices)
+        PROMPT.select("How can I help you learn about #{pretty_name}?", choices)
+      end
+
+      def org_detail(candidate)
+        pretty_name = format_username(candidate.username)
+
+        puts
+        puts "#{pretty_name} is a member of #{PASTEL.magenta.bold("#{candidate.org_count}")} organizations:"
+        puts
+        orgs_hashes = orgs(candidate.username)
+        candidate.org_names(orgs_hashes)
+        puts
+        org_details = PROMPT.yes?("Do you want a list of all their details? This could take a while.")
+        puts
+        if org_details == true
+          puts "Happy to help. Fetching the data now..."
+          puts
+          progressbar = ProgressBar.create
+          # Right now this is just making a random progressbar that then disappear; gotta revisit later so it's more meaningful
+          4.times { progressbar.increment; sleep 1 }
+          # Loop in here to return an array of the names of all the user's orgs
+          ap orgs_hashes
+          puts
+          puts "There you go! #{PASTEL.yellow('ProTip')}: Command + click on any of these URLs in most Terminals to go directly to the link."
+          puts
+        else
+          puts "Wise choice. What's next?"
+        end
       end
     end
 
-    desc "wizard", "Asks the user for input and helps them with subsequent questions"
+    desc "wizard", "Interactive Wizard that asks the user for input and helps them with subsequent questions"
     def wizard
-      prompt = TTY::Prompt.new
-
-      puts ""
-      say <<~WRAPPED
-        #{PASTEL.magenta.bold("Hello friend! This tool is designed to help you look up information about the developer candidate you've been tasked with assessing. So first thing's first: what's the Github username of the candidate?")}
-      WRAPPED
-      puts ""
-      username = prompt.ask("")
+      puts
+      prompt_file = File.expand_path('../../markdown/prompt.md', __dir__)
+      parsed = TTY::Markdown.parse_file(prompt_file, theme: THEME)
+      puts parsed
+      puts
+      username = PROMPT.ask("")
       new_candidate = Candidate.new(username)
 
       loop do
-        puts ""
+        puts
         response = prompts(username)
-        
-        if response == "Look up #{username}'s general information"
-          puts ""
+
+        case response
+        when :userinfo
+          puts
           user(username)
-        elsif response == "Tell me about the orgs #{username} belongs to"
-          puts ""
-          puts "#{username} is a member of #{new_candidate.org_count} organizations."
-          puts ""
-          org_details = prompt.yes?("Do you want a list of all their details? This could take a while.")
-          puts ""
-          if org_details == true
-            puts "Happy to help. Fetching the data now..."
-            puts ""
-            progressbar = ProgressBar.create
-            # Right now this is just making a random progressbar that then disappear; gotta revisit later
-            4.times { progressbar.increment; sleep 1 }
-            # Loop in here to return an array of the names of all the user's orgs
-            orgs(username)
-            # Restart the loop again with the choices
-          else
-            puts "Wise choice. What's next?"
-            puts ""
-          end
-        elsif response == "Look up a different candidate"
-          username = prompt.ask("What's the Github username of this next candidate?")
+        when :orgs
+          org_detail(new_candidate)
+        when :newuser
+          username = PROMPT.ask("What's the Github username of this next candidate?")
           new_candidate = Candidate.new(username)
-          choices
-          # need a way to restart the loop here. Probably need to extract some bit of this to another function so I can call it again. 
-          # Choices could perhaps be a method too, that's passed the new username for string interpolation
-        elsif response == "Remind me what the #{PASTEL.magenta.bold("`candidates`")} gem can do"
-          puts ""
+        when :help
+          puts
           help
-        elsif response == "Exit the program"
-          puts ""
+        when :exit
+          puts
           puts "#{PASTEL.magenta.bold('Goodbye then!')}"
           exit
         end
