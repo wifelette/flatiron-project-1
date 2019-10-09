@@ -2,7 +2,7 @@
 
 http://whatisthor.com/
 
-Normally, if your project needed a Gem, you would simply include it in your gemfile, and require it in your application. But in this case we're writing a _gem_, not an application, so instead we need to add the dependency to our gemspec:
+Normally, if your project needed a Gem, you would simply include it in your gemfile, and require it in your application. But in this case we're writing a _gem_, not an application, so instead we need to add the dependency to our _gemspec_:
 
 `spec.add_runtime_dependency "thor", "~> 0.20.3"`
 
@@ -14,7 +14,7 @@ The next step to make Thor work, is that we need to tell our executable file (in
 
 Once we've done that, we're able to run `bundle exec candidates` in our terminal while building the gem.
 
-Thor helps create CLI tools. It creates effectively a Table of Contents of all available CLI functionality.
+Thor helps create CLI tools. It effectively creates a Table of Contents of all available CLI functionality.
 
 This is a demo of some of what Thor can do:
 
@@ -44,7 +44,7 @@ Here's an example of a use:
 
 `HTTParty.get("https://api.github.com/users/wifelette").parsed_response`
 
-If you called it without the `.parsed_response` it would give you a gem-specific version of the content called `HTTParty::Resonse`. That has a bunch of metadata in it as well, versus if you do `.parsed_response` you're just getting the actual primary data in a hash. So there are different use cases for each.
+If you called it without the `.parsed_response` it would give you a gem-specific version of the content called `HTTParty::Resonse`. That has a bunch of metadata in it as well, versus if you do `.parsed_response` you're just getting the actual primary data in a hash. So there are different use cases for each, but I mostly use `.parsed_response`.
 
 Don't forget to once again add it to your gemspec:
 
@@ -52,15 +52,17 @@ Don't forget to once again add it to your gemspec:
 
 ...and to `require` it in your `CLI.rb`.
 
-## Pretty Print
+## Awesome Print
 
-While testing, I added the Pretty Print requirement to my files to help me parse the data visually in temporary testing. After digging around a bit I chose to instead use `Awesome Print` which does the same thing but is more feature rich—specifically, colos!
+While testing, I added the Pretty Print requirement to my files to help me parse the data visually in temporary testing. After digging around a bit I chose to instead use `Awesome Print` which does the same thing but is a bit more feature rich.
 
 `require "awesome_print"`
 
 It also needs to go into the Gemspec:
 
 `spec.add_runtime_dependency "awesome_print", "~> 1.8"`
+
+Pretty much everything needs to go in the gemspec, and following a similar convention, so I'll stop explicitly mentioning that here now.
 
 ## Pastel
 
@@ -71,12 +73,33 @@ I just added this for fun color in my CLI messages :p It's gratuitous.
 
 To look up the available options: https://github.com/piotrmurach/pastel
 
+It made the code kind'v hard to look at in some cases, since it caused things like nested interpolation, but the user output looks great. In some places I've extracted strings + pastel code into variables to keep the main code easier to read.
+
 ## Webmock
 
 Webmock is a gem I'm using to allow me to use stub data in my tests, instead of continuing to hammer the actual API every time. I added this after chatting with a classmate who was getting rate limited by her project website :p
 
-## TTYPrompt
+Later, when I added the option to switch to a new candidate, I had to add a second set of stubbed data so I could use that feature with mocks.
+
+## TTY Etc.
 
 https://rubygems.org/gems/tty-prompt
 https://github.com/piotrmurach/tty-prompt
 
+TTY-prompt is a gem I layered over Thor to help with pretty looking interactions, like choices with lists, yes/no questions, etc.
+
+Eventually I may strip out Thor all together since this gives me almost all of what I need, and makes it pleasant enough that the Thor `help` command isn't all that important anymore. But TBD, it also may be more work to remove it than to just leave it there.
+
+TTY is part of a family of gems though, so once I added `tty-prompt` I ended up toying with a bunch of the others as well. Some I uninstalled after. `tty-prompt` and `tty-markdown` are the primary ones I'm using for now.
+
+### `TTY-Markdown`
+
+I wanted some bigger blocks of text in my CLI primary commands, and I also wanted them in color. They ultimately made my code VERY heavy/hard to read, so I extracted the large bits of text into separate Markdown files, and then used `tty-markdown` to import and parse them in the actual CLI.
+
+I also overwrote the standard Markdown coloring scheme to accomplish my goals. For example, there's no markdown format for "make all my regular text look like this" so I overwrote the default stylesheet for how italics look, and then made everything italicized.
+
+### ProgressBar
+
+One of my API calls (`orgs_hashes`) could take a while to return data, since it could be _a lot_. My CLI explains this to the user ahead of time, but I still liked the notion of a visible progress bar. 
+
+It's up and running but I haven't yet dug in enough to make it especially useful. Right now it's running for an arbitrary amount of time, untethered from the actual API call. If I end up with more time I'll go back and finesse this (or possibly replace it with `tty-progressbar`).
