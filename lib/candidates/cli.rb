@@ -3,21 +3,28 @@ require "httparty"
 require "pastel"
 require "awesome_print"
 require "tty-prompt"
+require "tty-markdown"
 require "progressbar"
 
 module Candidates
   PASTEL = Pastel.new
+  THEME = {
+    em: [:magenta, :bold],
+    header: [:cyan, :bold],
+    hr: :yellow,
+    link: [:yellow, :underline],
+    list: :yellow,
+    strong: [:yellow, :bold],
+    table: :yellow,
+    quote: :yellow,
+  }
   class Cli < Thor
     def help(*)
       puts ""
-      print_wrapped <<~INTRO
-        #{PASTEL.magenta.bold('Are you tired of needing to use your 👀 to evaluate your candidates past 🏃‍♀️ record on Github? Are you tired of needing to, ugh, type URLs into your browser?! Have no fear! The `candidates` gem is here! 😊.')}
-
-        #{PASTEL.magenta.bold('Use `candidates help` along the way to remind yourself of all the super cool things you can do..')} 
-      INTRO
-
-      puts
-
+      help_file = File.expand_path('../../markdown/help.md', __dir__)
+      parsed = TTY::Markdown.parse_file(help_file, theme: THEME)
+      puts parsed
+      puts ""
       super
     end
 
