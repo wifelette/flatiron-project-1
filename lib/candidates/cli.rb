@@ -89,6 +89,7 @@ module Candidates
       WRAPPED
     end
 
+    # Proof of concept. I could in theory write one of these for every candidate attribute.
     desc "company USERNAME", "Returns the company the candidate publicly associates with"
     def company(username)
       candidate = Candidate.new(username)
@@ -98,7 +99,7 @@ module Candidates
     # This makes it a private method that won't appear in the Thor help command
     no_commands do 
       def orgs(username)
-        org_data = HTTParty.get("https://api.github.com/users/#{username}/orgs").parsed_response
+        HTTParty.get("https://api.github.com/users/#{username}/orgs").parsed_response
       end
 
       def format_username(username)
@@ -174,6 +175,7 @@ module Candidates
         when :exit
           puts
           puts "#{PASTEL.magenta.bold('Goodbye then!')}"
+          puts
           exit
         end
       end
