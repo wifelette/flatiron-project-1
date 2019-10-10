@@ -34,6 +34,8 @@ class Cli < Thor
   end
 ```
 
+The Thor website somehow doesn't actually link to Github :p Planning to submit a PR for this later!
+
 ## HTTParty
 
 https://github.com/jnunemaker/httparty
@@ -100,6 +102,6 @@ I also overwrote the standard Markdown coloring scheme to accomplish my goals. F
 
 ### ProgressBar
 
-One of my API calls (`orgs_hashes`) could take a while to return data, since it could be _a lot_. My CLI explains this to the user ahead of time, but I still liked the notion of a visible progress bar. 
+One of my API calls (`orgs_hashes`) could take a while to return data, since it could be _a lot_. My CLI explains this to the user ahead of time, but I still liked the notion of a visible progress bar.
 
 It's up and running but I haven't yet dug in enough to make it especially useful. Right now it's running for an arbitrary amount of time, untethered from the actual API call. If I end up with more time I'll go back and finesse this (or possibly replace it with `tty-progressbar`).
