@@ -140,7 +140,7 @@ module Candidates
           puts
           puts "There you go! #{PASTEL.yellow('ProTip')}: Command + click on any of these URLs in most Terminals to go directly to the link."
           puts
-        else
+        elsif org_details == false
           puts "Wise choice. What's next?"
         end
       end

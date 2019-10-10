@@ -55,3 +55,7 @@ Of wifelette's 163 public repos, they break down as follows:
 - Is it possible to reorder and/or add categories to how Thor presents all the commands when you type `help`?
 - Some things, like email, won't work unless the person is authed. How to handle?
 - if you accidentally type in just the `candidates user` instead of `candidates user username` a friendly and clear error message would be great
+
+## Custom Error Handling
+
+In started writing a custom error class when I hit a sort-of error in my TTY prompts. However, after a bit I dug into it a bit more, and discovered that TTY themselves had just accepted a PR to fix the issue (not in the way I'd have liked, but fix it just the same). So I've abandoned my Custom Error stuff for now, lacking in a use case. That said, I left the file and some of the code around for now, as I could see it being useful later if I added more features.
