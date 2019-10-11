@@ -52,15 +52,15 @@ Of wifelette's 163 public repos, they break down as follows:
 
 ### Things to think about later
 
-- Q: Is it possible to reorder and/or add categories to how Thor presents all the commands when you type `help`?
-- A: Looked it up. It's an open feature request, not currently possible.
-- Q: Some things, like email, won't work unless the person is authed. How to handle?
-- A: For now I added a specific message for when there's no email. Same for some other fields.
-- Q: if you accidentally type in just the `candidates user` instead of `candidates user username` a friendly and clear error message would be great
-- A: Wishlist for later, since it involves default Thor behavior. Right now this isn't something I can touch with my custom errors.
+- **Q**: Is it possible to reorder and/or add categories to how Thor presents all the commands when you type `help`?
+- **A**: Looked it up. It's an open feature request, not currently possible.
+- **Q**: Some things, like email, won't work unless the person is authed. How to handle?
+- **A**: For now I added a specific message for when there's no email. Same for some other fields.
+- **Q**: if you accidentally type in just the `candidates user` instead of `candidates user username` a friendly and clear error message would be great
+- **A**: Wishlist for later, since it involves default Thor behavior. Right now this isn't something I can touch with my custom errors.
 
 ## Custom Error Handling
 
-I started writing a custom error class when I hit a sort-of error in my TTY prompts. However, after a bit I dug into it a bit more, and discovered that TTY themselves had just accepted a PR to fix the issue (not in the way I'd have liked, but fix it just the same). So I've abandoned that part.
+I started writing a custom error class when I hit a sort-of error in my TTY prompts. However, after a bit I dug into it a bit more, and discovered that TTY themselves had just accepted a PR to fix the issue (not in the way I'd have liked, but fix it just the same). So I abandoned that part, and switched to using the unreleased version of the gem.
 
 Later I added custom errors to handle what happened if you typed in a user that didn't actually exist.
