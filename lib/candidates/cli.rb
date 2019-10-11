@@ -4,7 +4,10 @@ require "pastel"
 require "awesome_print"
 require "tty-prompt"
 require "tty-markdown"
-require "progressbar"
+# This next bit is for formatting the Created date to something human-helpful
+require "twitter_cldr"
+
+require_relative "./errors"
 
 module Candidates
   # Pastel is a tool for coloring text inside the terminal
@@ -25,6 +28,8 @@ module Candidates
   }
 
   class Cli < Thor
+    include ErrorHandling
+
     def help(*)
       # help is a built-in method in Thor; this code is how I can insert text into its output, ahead of the built-in content
       puts
@@ -32,6 +37,7 @@ module Candidates
       parsed = TTY::Markdown.parse_file(help_file, theme: THEME)
       puts parsed
       puts
+      # Next switch back to the built-in functionality
       super
     end
 
@@ -75,8 +81,7 @@ module Candidates
         
         #{PASTEL.magenta.bold('THEIR ACTIVITY:')}
         
-        #{PASTEL.magenta.bold('Joined GitHub:')} #{candidate.created}
-        # TODO: 1. (X years and Y months ago), 2. Format the date pretty
+        #{PASTEL.magenta.bold('Joined GitHub:')} #{candidate.created.localize(:en).ago}
         #{PASTEL.magenta.bold('Org Membership:')} #{candidate.org_count}
         #{PASTEL.magenta.bold('Public Repos:')} #{candidate.repos}
         #{PASTEL.magenta.bold('Followers:')} #{candidate.followers}
@@ -108,7 +113,7 @@ module Candidates
 
       def format_username(username)
         # This exists just because PASTEL makes the copy really hard to scan, and we use the colored Username a lot.
-        "#{PASTEL.magenta.bold("#{username}")}"
+        PASTEL.magenta.bold("#{username}")
       end
       
       def prompts(username)
@@ -134,16 +139,13 @@ module Candidates
         orgs_hashes = orgs(candidate.username)
         candidate.org_names(orgs_hashes)
         puts
-        org_details = PROMPT.yes?("Do you want a list of all their details? This could take a while.")
+        org_details = PROMPT.yes?("Do you want a list of all their details? This could be a lot of info.")
         puts
         if org_details == true
           puts "Happy to help. Fetching the data now..."
           puts
-          progressbar = ProgressBar.create
-          # TODO: Right now this is just making a random progressbar that then disappear; gotta revisit later so it's more meaningful
-          4.times { progressbar.increment; sleep 1 }
           ap orgs_hashes
-          # TODO: It would be fun later to make the orgs display in a table rather than a hash. Try `tty-table`
+          # TODO: It would be fun later to make the orgs display in a table rather than a hash. Try `tty-table` later.
           puts
           puts "There you go! #{PASTEL.yellow('ProTip')}: Command + click on any of these URLs in most Terminals to go directly to the link."
           puts
@@ -155,41 +157,50 @@ module Candidates
 
     desc "wizard", "Interactive Wizard that asks the user for input and helps them with subsequent questions"
     def wizard
+      # This is fetching all the pretty text I want to show here from the prompt.md file
       puts
-      # This is fetching all the pretty text I want to show here from the .md file
       prompt_file = File.expand_path('../../markdown/prompt.md', __dir__)
       puts TTY::Markdown.parse_file(prompt_file, theme: THEME)
       puts
-      # The query below is blank because I included the question itself in the previous markdown file. Doing it this way has the added bonus of effectively putsing another blank line I wanted.
-      username = PROMPT.ask("")
-      new_candidate = Candidate.new(username)
+
+      # Initializing the candidate up here in the top level of the `wizard` method makes it accessible inside all the blocks (do/end's). That way it can be rewritten inside one part of the loop or error and maintain that state once you move on to other parts, without hitting a scoping issue.
+      candidate = nil
+
+      keep_trying do
+        # The query below is blank because I included the question itself in the previous markdown file. Doing it this way has the added bonus of effectively puts'ing another blank line I wanted.
+        input = PROMPT.ask("")
+
+        candidate = Candidate.new(input)
+      end
 
       loop do
-        puts
-        response = prompts(username)
+        keep_trying do
+          puts
+          response = prompts(candidate.username)
 
-        case response
-        when :userinfo
-          # If they choose option 1, call the `user` method to display all the pretty-formatted info for the user
-          puts
-          user(username)
-        when :orgs
-          # If they choose option 2, send them into the org line of questioning: how many, details y/n, etc.
-          org_detail(new_candidate)
-        when :newuser
-          # If they choose option 3, get the name of a new candidate from the user and instantiate it
-          username = PROMPT.ask("What's the Github username of this next candidate?")
-          new_candidate = Candidate.new(username)
-        when :help
-          # If they choose option 4, call the built-in `help` method to display a list of everything they can do
-          puts
-          help
-        when :exit
-          # If they choose option 5, display a parting greeting and exit the program
-          puts
-          puts "#{PASTEL.magenta.bold('Goodbye then!')}"
-          puts
-          exit
+          case response
+          when :userinfo
+            # If they choose option 1, call the `user` method to display all the pretty-formatted info for the user
+            puts
+            user(candidate.username)
+          when :orgs
+            # If they choose option 2, send them into the org line of questioning: how many, details y/n, etc.
+            org_detail(candidate)
+          when :newuser
+            # If they choose option 3, get the name of a new candidate from the user and instantiate it
+            input = PROMPT.ask("What's the Github username of this next candidate?")
+            candidate = Candidate.new(input)
+          when :help
+            # If they choose option 4, call the built-in `help` method to display a list of everything they can do
+            puts
+            help
+          when :exit
+            # If they choose option 5, display a parting greeting and exit the program
+            puts
+            puts PASTEL.magenta.bold('Goodbye then!')
+            puts
+            exit
+          end
         end
       end
     end

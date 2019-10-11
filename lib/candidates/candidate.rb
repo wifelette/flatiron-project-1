@@ -1,4 +1,6 @@
 require "httparty"
+# This next bit is for formatting the Created date to something human-helpful. Date comes with Ruby, and Twitter.cldr uses it.
+require "date"
 
 module Candidates
   class Candidate
@@ -7,7 +9,10 @@ module Candidates
     def initialize(username)
       response = HTTParty.get("https://api.github.com/users/#{username}")
 
-      raise response.parsed_response.inspect unless response.code == 200
+      # This next line helps me figure out when I've been rate limited
+      unless response.code == 200
+        raise MissingUserError, username
+      end
 
       user_data = response.parsed_response
 
@@ -18,7 +23,7 @@ module Candidates
       @company = user_data["company"]
       @bio = user_data["bio"]
       @hireable = user_data["hireable"]
-      @created = user_data["created_at"]
+      @created = DateTime.parse(user_data["created_at"])
       @repos = user_data["public_repos"]
       @followers = user_data["followers"]
     end
@@ -27,7 +32,7 @@ module Candidates
       HTTParty.get("https://api.github.com/users/#{username}/orgs").parsed_response.length
     end
 
-    def org_names(array_of_orgs)
+    def org_names(array)
       incrementor = 1
       HTTParty.get("https://api.github.com/users/#{username}/orgs").parsed_response.each do |org_hash|
         puts "#{incrementor}. #{org_hash["login"]}"
