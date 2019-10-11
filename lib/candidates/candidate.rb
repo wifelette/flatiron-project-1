@@ -28,15 +28,14 @@ module Candidates
       @followers = user_data["followers"]
     end
 
-    def org_count
-      HTTParty.get("https://api.github.com/users/#{username}/orgs").parsed_response.length
+    def orgs
+      # `@orgs ||= ` means that the first time I make the HTTP request, I can keep reusing it
+      @orgs ||= HTTParty.get("https://api.github.com/users/#{username}/orgs").parsed_response
     end
 
-    def org_names(array)
-      incrementor = 1
-      HTTParty.get("https://api.github.com/users/#{username}/orgs").parsed_response.each do |org_hash|
-        puts "#{incrementor}. #{org_hash["login"]}"
-        incrementor += 1
+    def org_names
+      orgs.each.with_index do |org_hash, i|
+        puts "#{i + 1}. #{org_hash['login']}"
       end
     end
   end

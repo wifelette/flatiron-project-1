@@ -82,7 +82,7 @@ module Candidates
         #{PASTEL.magenta.bold('THEIR ACTIVITY:')}
         
         #{PASTEL.magenta.bold('Joined GitHub:')} #{candidate.created.localize(:en).ago}
-        #{PASTEL.magenta.bold('Org Membership:')} #{candidate.org_count}
+        #{PASTEL.magenta.bold('Org Membership:')} #{candidate.orgs.length}
         #{PASTEL.magenta.bold('Public Repos:')} #{candidate.repos}
         #{PASTEL.magenta.bold('Followers:')} #{candidate.followers}
         
@@ -107,10 +107,6 @@ module Candidates
 
     # This makes what comes after it a private method that won't appear in the Thor help command
     no_commands do 
-      def orgs(username)
-        HTTParty.get("https://api.github.com/users/#{username}/orgs").parsed_response
-      end
-
       def format_username(username)
         # This exists just because PASTEL makes the copy really hard to scan, and we use the colored Username a lot.
         PASTEL.magenta.bold("#{username}")
@@ -133,18 +129,17 @@ module Candidates
         pretty_name = format_username(candidate.username)
 
         puts
-        puts "#{pretty_name} is a member of #{PASTEL.magenta.bold("#{candidate.org_count}")} organizations:"
+        puts "#{pretty_name} is a member of #{PASTEL.magenta.bold("#{candidate.orgs.length}")} organizations:"
         puts
         # The next two lines display a numbered list of all the orgs the candidate belongs to
-        orgs_hashes = orgs(candidate.username)
-        candidate.org_names(orgs_hashes)
+        candidate.org_names
         puts
         org_details = PROMPT.yes?("Do you want a list of all their details? This could be a lot of info.")
         puts
         if org_details == true
           puts "Happy to help. Fetching the data now..."
           puts
-          ap orgs_hashes
+          ap candidate.orgs
           # TODO: It would be fun later to make the orgs display in a table rather than a hash. Try `tty-table` later.
           puts
           puts "There you go! #{PASTEL.yellow('ProTip')}: Command + click on any of these URLs in most Terminals to go directly to the link."
