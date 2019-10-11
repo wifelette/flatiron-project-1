@@ -50,13 +50,15 @@ Of wifelette's 163 public repos, they break down as follows:
 
 ^ This may not be possible for rate limit reasons—so far the only way to find this data would be to get ALL the details on ALL their repos and then do a .length for the total number, annnd... so far no way for the type :p GitHub uses Linguist to do it themselves (https://help.github.com/en/articles/about-repository-languages) and so far there's nowhere exposed that they actually _store_ that info.
 
-**Update**: This info lives _inside_ each org's API call, nested inside each repo in the org. So `org > repo > language`, where there are _lots_ of repos in each org. So now I know it's definitely possible and probably not all that complicated, though it would surely be _slow_. For future implementation note:
+**Update**: This info lives _inside_ each org's API call, nested inside each repo the user has. So `user > repo > language`, where there are _lots_ of repos potentially belonging to each user. So now I know it's definitely possible and probably not all that complicated, though it would surely be _slow_. For future implementation note:
 
-- https://api.github.com/orgs/tildeio/repos is the API URL for each org
-- Like earlier, this could be popped into a CLI command with `#{org}` interpolated into the URL.
+- https://api.github.com/users/wifelette/repos is the API URL for each user's repo
+- Like earlier, this could be popped into a CLI command with `#{username}` interpolated into the URL.
 - Once there, another array of hashes.
 - Each entry in the array, top level, is a hash of the ID and details of the repo, as a _key_ in another hash. The _value_ attached to the key is yet _more_ data, about the repo _contents_. So it would need to be something like... snag the key-repo-`id`, and then pair it with the nested `language` key/value.
 - Lastly, gotta sort out the basic math to tally it all up and spit out the percentages.
+
+This same pattern follows if we went to https://api.github.com/orgs/tildeio/repos to fetch this info on the org level instead of the user level.
 
 ### Things to think about later
 
