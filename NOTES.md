@@ -125,3 +125,7 @@ It's up and running but I haven't yet dug in enough to make it especially useful
 https://github.com/twitter/twitter-cldr-rb
 
 I used this gem, in conjunction with built in Ruby functionality (`Date`) to prettify the github user's start date from `2008-09-19T21:40:19Z` to a human-readable `X months/years/etc ago`.
+
+## RSpec
+
+We haven't really covered testing in the curriculum yet, so I can't really write my own, but I'm working to better _understand_ them for now at least. A friend helped me write a few starting tests as a learning opportunity. I didn't want to get to distracted though, so once that session was over I didn't continue to write more. I hope to go back to them one day. Writing this gem definitely made me appreciate testing in general, since I could've run my test suite after each change instead of needing to restart my program and manually test all the options each time.
