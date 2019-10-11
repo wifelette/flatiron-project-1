@@ -27,6 +27,8 @@ Style/UnneededInterpolation:
   Enabled: false
 Style/SymbolArray:
   Enabled: false
+Style/MutableConstant:
+  Enabled: false
 Metrics/LineLength:
   Enabled: false
 Metrics/MethodLength:
