@@ -1,7 +1,7 @@
 require "candidates/version"
 require "candidates/cli"
 require "candidates/candidate"
-require "candidates/development"
+require "candidates/development" if ENV["CANDIDATES_DEV"]
 require "candidates/errors"
 require "pry-byebug"
 
