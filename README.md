@@ -20,7 +20,7 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+To run the `candidates` gem, navigate to the directory. There's a helpful wizard, which is the best way to navigate the program. The command is simply `wizard`, and you're off to the races!
 
 ## Development
 
