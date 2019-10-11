@@ -1,3 +1,7 @@
+# Tools
+
+Explanations of some of the tools and gems I'm using along the way, both for reference along the way, and as docs to remind me later.
+
 ## Thor
 
 http://whatisthor.com/
@@ -79,9 +83,17 @@ It made the code kind'v hard to look at in some cases, since it caused things li
 
 ## Webmock
 
+https://github.com/bblimke/webmock
+
 Webmock is a gem I'm using to allow me to use stub data in my tests, instead of continuing to hammer the actual API every time. I added this after chatting with a classmate who was getting rate limited by her project website :p
 
 Later, when I added the option to switch to a new candidate, I had to add a second set of stubbed data so I could use that feature with mocks.
+
+Full disclosure: I got some help with this and don't entirely understand how it works.
+
+By default, the `candidates` gem will use live data.
+
+While developing, I'll run it using `CANDIDATES_DEV=1 ./bin/candidates wizard` to use the stub data instead of making live API calls.
 
 ## TTY Etc.
 
@@ -94,16 +106,22 @@ Eventually I may strip out Thor all together since this gives me almost all of w
 
 TTY is part of a family of gems though, so once I added `tty-prompt` I ended up toying with a bunch of the others as well. Some I uninstalled after. `tty-prompt` and `tty-markdown` are the primary ones I'm using for now.
 
-### `TTY-Markdown`
+### TTY-Markdown
 
 I wanted some bigger blocks of text in my CLI primary commands, and I also wanted them in color. They ultimately made my code VERY heavy/hard to read, so I extracted the large bits of text into separate Markdown files, and then used `tty-markdown` to import and parse them in the actual CLI.
 
 I also overwrote the standard Markdown coloring scheme to accomplish my goals. For example, there's no markdown format for "make all my regular text look like this" so I overwrote the default stylesheet for how italics look, and then made everything italicized.
 
-### ProgressBar
+## ProgressBar
 
 One of my API calls (`orgs_hashes`) could take a while to return data, since it could be _a lot_. My CLI explains this to the user ahead of time, but I still liked the notion of a visible progress bar.
 
 It's up and running but I haven't yet dug in enough to make it especially useful. Right now it's running for an arbitrary amount of time, untethered from the actual API call. If I end up with more time I'll go back and finesse this (or possibly replace it with `tty-progressbar`).
 
-UPDATE: Nixed this altogether, since I was making a silly mistake in my understanding of the API call situation :p It shouldn't actually be slow.
+**UPDATE**: Nixed this altogether, since I was making a silly mistake in my understanding of the API call situation :p It shouldn't actually be slow.
+
+## Twitter CLDR
+
+https://github.com/twitter/twitter-cldr-rb
+
+I used this gem, in conjunction with built in Ruby functionality (`Date`) to prettify the github user's start date from `2008-09-19T21:40:19Z` to a human-readable `X months/years/etc ago`.
