@@ -358,6 +358,9 @@ module Candidates
 
     WebMock.enable!
 
+    stub_request(:get, %r{https://api.github.com/.*})
+    .to_return(status: 404, body: %q|{"message":"Not Found","documentation_url":"https://developer.github.com/v3/users/#get-a-single-user"}|, headers: { "Content-Type": "application/json" })
+
     stub_request(:get, "https://api.github.com/users/wifelette")
       .to_return(status: 200, body: wifelette_body, headers: { "Content-Type": "application/json" })
 
@@ -369,5 +372,8 @@ module Candidates
 
     stub_request(:get, "https://api.github.com/users/wycats/orgs")
       .to_return(status: 200, body: wycats_orgs, headers: { "Content-Type": "application/json" }) 
+    
+
+
   end
 end
