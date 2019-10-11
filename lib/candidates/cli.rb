@@ -44,7 +44,7 @@ module Candidates
     # This next line is what tells the built-in `help` command what to display when describing the method
     desc "user USERNAME", "Gets info about a Github user"
     def user(username)
-      candidate = Candidate.new(username)
+      candidate = Candidate.fetch(username)
       # There are a lot of puts around; it's just the simplest way to add whitespace in the command line, which makes the tool easier to read/use
       puts
       say <<~WRAPPED
@@ -101,7 +101,7 @@ module Candidates
     # Proof of concept. I could in theory write one of these for every candidate attribute.
     desc "company USERNAME", "Returns the company the candidate publicly associates with"
     def company(username)
-      candidate = Candidate.new(username)
+      candidate = Candidate.fetch(username)
       puts candidate.company
     end
 
@@ -165,7 +165,7 @@ module Candidates
         # The query below is blank because I included the question itself in the previous markdown file. Doing it this way has the added bonus of effectively puts'ing another blank line I wanted.
         input = PROMPT.ask("")
 
-        candidate = Candidate.new(input)
+        candidate = Candidate.fetch(input)
       end
 
       loop do
@@ -184,7 +184,7 @@ module Candidates
           when :newuser
             # If they choose option 3, get the name of a new candidate from the user and instantiate it
             input = PROMPT.ask("What's the Github username of this next candidate?")
-            candidate = Candidate.new(input)
+            candidate = Candidate.fetch(input)
           when :help
             # If they choose option 4, call the built-in `help` method to display a list of everything they can do
             puts

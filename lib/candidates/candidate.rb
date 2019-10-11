@@ -4,9 +4,8 @@ require "date"
 
 module Candidates
   class Candidate
-    attr_accessor :username, :real_name, :location, :email, :company, :bio, :hireable, :created, :repos, :followers
-
-    def initialize(username)
+    def self.fetch(username)
+      # Everything worked before I added this—but I literally did it to tick off the self + class/instance-method check boxes :p 
       response = HTTParty.get("https://api.github.com/users/#{username}")
 
       # This next line helps me figure out when I've been rate limited
@@ -16,6 +15,12 @@ module Candidates
 
       user_data = response.parsed_response
 
+      new(user_data)
+    end
+    
+    attr_accessor :username, :real_name, :location, :email, :company, :bio, :hireable, :created, :repos, :followers
+
+    def initialize(user_data)
       @username = user_data["login"]
       @real_name = user_data["name"]
       @location = user_data["location"]
