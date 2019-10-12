@@ -5,7 +5,7 @@ require "date"
 module Candidates
   class Candidate
     def self.fetch(username)
-      # Everything worked before I added this—but I literally did it to tick off the self + class/instance-method check boxes :p 
+      # Everything worked before I added this `fetch` method, but I literally did it to tick off the self + class/instance-method check boxes :p 
       response = HTTParty.get("https://api.github.com/users/#{username}")
 
       # This next line helps me figure out when I've been rate limited
@@ -33,14 +33,14 @@ module Candidates
       @followers = user_data["followers"]
     end
 
-    def orgs
-      # `@orgs ||= ` means that the first time I make the HTTP request, I can keep reusing it
-      @orgs ||= HTTParty.get("https://api.github.com/users/#{username}/orgs").parsed_response
+    def orgs_call
+      # `||= ` means that the first time I make the HTTP request, I can keep reusing it
+      @orgs_call ||= HTTParty.get("https://api.github.com/users/#{username}/orgs").parsed_response
     end
 
     def org_names
-      orgs.each.with_index do |org_hash, i|
-        puts "#{i + 1}. #{org_hash['login']}"
+      orgs_call.map.with_index do |org_hash, i|
+        "#{i + 1}. #{org_hash['login']}"
       end
     end
   end

@@ -42,7 +42,7 @@ module Candidates
     end
 
     # This next line is what tells the built-in `help` command what to display when describing the method
-    desc "user USERNAME", "Gets info about a Github user"
+    desc "user USERNAME", "Returns all the basic public info about a Github user"
     def user(username)
       candidate = Candidate.fetch(username)
       # There are a lot of puts around; it's just the simplest way to add whitespace in the command line, which makes the tool easier to read/use
@@ -82,7 +82,7 @@ module Candidates
         #{PASTEL.magenta.bold('THEIR ACTIVITY:')}
         
         #{PASTEL.magenta.bold('Joined GitHub:')} #{candidate.created.localize(:en).ago}
-        #{PASTEL.magenta.bold('Org Membership:')} #{candidate.orgs.length}
+        #{PASTEL.magenta.bold('Org Membership:')} #{candidate.orgs_call.length}
         #{PASTEL.magenta.bold('Public Repos:')} #{candidate.repos}
         #{PASTEL.magenta.bold('Followers:')} #{candidate.followers}
         
@@ -98,11 +98,48 @@ module Candidates
       WRAPPED
     end
 
-    # Proof of concept. I could in theory write one of these for every candidate attribute.
+    # Proofs of concept. I could in theory write one of these for every candidate attribute.
     desc "company USERNAME", "Returns the company the candidate publicly associates with"
     def company(username)
+      puts candidate = Candidate.fetch(username).company
+    end
+
+    desc "location USERNAME", "Returns the location the candidate has publicly listed"
+    def location(username)
+      puts Candidate.fetch(username).location
+    end
+
+    desc "bio USERNAME", "Returns the candidate's Github bio"
+    def bio(username)
+      puts Candidate.fetch(username).bio
+    end
+
+    desc "email USERNAME", "Returns the candidate's publicly listed email"
+    def email(username)
       candidate = Candidate.fetch(username)
-      puts candidate.company
+      if candidate.email.nil?
+        puts "This candidate doesn't have a public email listed."
+      else
+        puts candidate.email
+      end
+    end
+
+    desc "created USERNAME", "Returns how long ago the candidate signed up for Github"
+    def created(username)
+      # This, along with the modifying code inside the `initialize` method, makes the date show up in a much more useful format
+      puts Candidate.fetch(username).created.localize(:en).ago
+    end
+
+    desc "orgs USERNAME", "Returns a list of all the organizations the candidate is a public member of"
+    def orgs(username)
+      candidate = Candidate.fetch(username)
+      if candidate.org_names.nil?
+        puts "This candidate doesn't belong to any orgs (not publicly anyway)."
+      else
+        pretty_name = format_username(username)
+        puts "#{pretty_name} is a member of #{PASTEL.magenta.bold("#{candidate.orgs_call.length}")} organizations:"
+        puts candidate.org_names
+      end
     end
 
     # This makes what comes after it a private method that won't appear in the Thor help command
@@ -116,7 +153,7 @@ module Candidates
         pretty_name = format_username(username)
         choices = [
           { value: :userinfo, name: "Look up #{pretty_name}'s general information" },
-          { value: :orgs,     name: "Tell me about the orgs #{pretty_name} belongs to" },
+          { value: :orgs,     name: "Tell me about the organizations #{pretty_name} belongs to" },
           { value: :newuser,  name: "Look up a different candidate" },
           { value: :help,     name: "Remind me what the #{PASTEL.magenta.bold('`candidates`')} gem can do" },
           { value: :exit,     name: "Exit the program" }
@@ -129,17 +166,17 @@ module Candidates
         pretty_name = format_username(candidate.username)
 
         puts
-        puts "#{pretty_name} is a member of #{PASTEL.magenta.bold("#{candidate.orgs.length}")} organizations:"
+        puts "#{pretty_name} is a member of #{PASTEL.magenta.bold("#{candidate.orgs_call.length}")} organizations:"
         puts
         # The next two lines display a numbered list of all the orgs the candidate belongs to
-        candidate.org_names
+        puts candidate.org_names
         puts
         org_details = PROMPT.yes?("Do you want a list of all their details? This could be a lot of info.")
         puts
         if org_details == true
           puts "Happy to help. Fetching the data now..."
           puts
-          ap candidate.orgs
+          ap candidate.orgs_call
           # TODO: It would be fun later to make the orgs display in a table rather than a hash. Try `tty-table` later.
           puts
           puts "There you go! #{PASTEL.yellow('ProTip')}: Command + click on any of these URLs in most Terminals to go directly to the link."
