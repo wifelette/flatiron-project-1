@@ -143,6 +143,14 @@ module Candidates
       end
     end
 
+    desc "languages USERNAME", "Returns an overview of the languages used in the Github user's public repos"
+    def languages(username)
+      puts
+      candidate = Candidate.fetch(username)
+      lang_detail(candidate)
+      puts
+    end
+
     # This makes what comes after it a private method that won't appear in the Thor help command
     no_commands do 
       def format_username(username)
