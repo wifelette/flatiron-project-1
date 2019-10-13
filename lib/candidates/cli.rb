@@ -163,7 +163,7 @@ module Candidates
         choices = [
           { value: :userinfo, name: "Look up #{pretty_name}'s general information" },
           { value: :orgs,     name: "Tell me about the organizations #{pretty_name} belongs to" },
-          { value: :langs,    name: "Tell me about the languages #{pretty_name} codes in"},
+          { value: :langs,    name: "Tell me about the languages #{pretty_name} codes in" },
           { value: :newuser,  name: "Look up a different candidate" },
           { value: :help,     name: "Remind me what the #{PASTEL.magenta.bold('`candidates`')} gem can do" },
           { value: :exit,     name: "Exit the program" }
@@ -197,11 +197,15 @@ module Candidates
       end
 
       def lang_detail(candidate)
+        # This is using the `tty-table` gem to format the data
         table = TTY::Table.new(header:["Language", "# of Repos", "Percent"]) do |t|
           candidate.languages.each do |language, details|
-            t << [language, details[:qty], details[:percent]]
+            # This formats the particular piece of data into a human-friendly percent number
+            percent = details[:percent] * 100
+            t << [language, details[:qty], "#{percent.round}%"]
           end
         end
+        # This next bit of code is also for formatting; it adds the table strokes and padding
         result = table.render(:unicode) do |renderer|
           renderer.border.separator = :each_row
           renderer.padding = [0, 1, 0, 1]

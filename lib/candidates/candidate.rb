@@ -51,17 +51,20 @@ module Candidates
       # Then I'm creating a new Hash, that defaults to the number 0
       languages = {}
 
+      repos = lang_call.size
+
       # Then I'm iterating over the Hash of all the repos
       lang_call.each do |repo|
         # Then I'm pulling the Language (singular) from each Repo
         language = repo['language']
-        # If the repo doesn't have one listed, it'll return nil, and we don't want to do anything
-        next if language.nil?
-        # If the repo does have one listed, we'll add 1 to the tally for that language
 
+        # If the repo doesn't have one listed, it'll return nil, and we don't want to do anything
+        language = "Not Listed" if language.nil?
+
+        # If the repo does have one listed, we'll add 1 to the tally for that language
         languages[language] ||= { qty: 0, percent: 0 }
         languages[language][:qty] += 1
-        languages[language][:percent] = languages[language][:qty].to_f / @repos
+        languages[language][:percent] = (languages[language][:qty].to_f / repos).round(2)
       end
 
       # Lastly we're returning a hash that has a list of how many repos of each language belong to the user
