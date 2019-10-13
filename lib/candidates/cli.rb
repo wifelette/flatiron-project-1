@@ -4,6 +4,7 @@ require "pastel"
 require "awesome_print"
 require "tty-prompt"
 require "tty-markdown"
+require "tty-table"
 # This next bit is for formatting the Created date to something human-helpful
 require "twitter_cldr"
 
@@ -41,7 +42,7 @@ module Candidates
       super
     end
 
-    # This next line is what tells the built-in `help` command what to display when describing the method
+    # This next `desc` line is what tells the built-in `help` command what to display when describing the method
     desc "user USERNAME", "Returns all the basic public info about a Github user"
     def user(username)
       candidate = Candidate.fetch(username)
@@ -101,7 +102,7 @@ module Candidates
     # Proofs of concept. I could in theory write one of these for every candidate attribute.
     desc "company USERNAME", "Returns the company the candidate publicly associates with"
     def company(username)
-      puts candidate = Candidate.fetch(username).company
+      puts Candidate.fetch(username).company
     end
 
     desc "location USERNAME", "Returns the location the candidate has publicly listed"
@@ -154,6 +155,7 @@ module Candidates
         choices = [
           { value: :userinfo, name: "Look up #{pretty_name}'s general information" },
           { value: :orgs,     name: "Tell me about the organizations #{pretty_name} belongs to" },
+          { value: :langs,    name: "Tell me about the languages #{pretty_name} codes in"},
           { value: :newuser,  name: "Look up a different candidate" },
           { value: :help,     name: "Remind me what the #{PASTEL.magenta.bold('`candidates`')} gem can do" },
           { value: :exit,     name: "Exit the program" }
@@ -185,7 +187,21 @@ module Candidates
           puts "Wise choice. What's next?"
         end
       end
+
+      def lang_detail(candidate)
+        table = TTY::Table.new(header:["Language", "# of Repos", "Percent"]) do |t|
+          candidate.languages.each do |language, details|
+            t << [language, details[:qty], details[:percent]]
+          end
+        end
+        result = table.render(:unicode) do |renderer|
+          renderer.border.separator = :each_row
+          renderer.padding = [0, 1, 0, 1]
+        end        
+        puts result
+      end
     end
+    
 
     desc "wizard", "Interactive Wizard that asks the user for input and helps them with subsequent questions"
     def wizard
@@ -218,16 +234,19 @@ module Candidates
           when :orgs
             # If they choose option 2, send them into the org line of questioning: how many, details y/n, etc.
             org_detail(candidate)
+          when :langs 
+            # If they choose option 3, dig into the languages of all their public repos
+            lang_detail(candidate)
           when :newuser
-            # If they choose option 3, get the name of a new candidate from the user and instantiate it
+            # If they choose option 4, get the name of a new candidate from the user and instantiate it
             input = PROMPT.ask("What's the Github username of this next candidate?")
             candidate = Candidate.fetch(input)
           when :help
-            # If they choose option 4, call the built-in `help` method to display a list of everything they can do
+            # If they choose option 5, call the built-in `help` method to display a list of everything they can do
             puts
             help
           when :exit
-            # If they choose option 5, display a parting greeting and exit the program
+            # If they choose option 6, display a parting greeting and exit the program
             puts
             puts PASTEL.magenta.bold('Goodbye then!')
             puts

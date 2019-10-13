@@ -43,5 +43,29 @@ module Candidates
         "#{i + 1}. #{org_hash['login']}"
       end
     end
+
+    def languages
+      # First I'm fetching the Hash of all the repos belonging to the user
+      lang_call ||= HTTParty.get("https://api.github.com/users/#{username}/repos").parsed_response
+
+      # Then I'm creating a new Hash, that defaults to the number 0
+      languages = {}
+
+      # Then I'm iterating over the Hash of all the repos
+      lang_call.each do |repo|
+        # Then I'm pulling the Language (singular) from each Repo
+        language = repo['language']
+        # If the repo doesn't have one listed, it'll return nil, and we don't want to do anything
+        next if language.nil?
+        # If the repo does have one listed, we'll add 1 to the tally for that language
+
+        languages[language] ||= { qty: 0, percent: 0 }
+        languages[language][:qty] += 1
+        languages[language][:percent] = languages[language][:qty].to_f / @repos
+      end
+
+      # Lastly we're returning a hash that has a list of how many repos of each language belong to the user
+      languages
+    end
   end
 end
